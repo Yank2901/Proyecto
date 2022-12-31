@@ -6,14 +6,18 @@
         private string _nombre;
         private int _idCliente;
 
-        public Mascota(string _nombre)
+        public Mascota(string _nombre, int _idCliente)
         {
             this._id = -1;
             this._nombre = _nombre;
-            this._idCliente = -1;
+            this._idCliente = _idCliente;
         }
 
-        public int Id { get { return _id; } }
+        public int Id
+        {
+            get { return _id; }
+            set { _id = value; }
+        }
 
         public string Nombre
         {
@@ -21,6 +25,10 @@
             set { _nombre = value; }
         }
 
-        public int IdCliente { get { return _idCliente; } }
+        public int IdCliente
+        {
+            get { return _idCliente; }
+            set { _idCliente = value; }
+        }
     }
 }

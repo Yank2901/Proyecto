@@ -11,7 +11,11 @@
             this._nombre = _nombre;
         }
 
-        public int Id { get { return _id; } }
+        public int Id
+        {
+            get { return _id; }
+            set { _id = value; }
+        }
 
         public string Nombre
         {

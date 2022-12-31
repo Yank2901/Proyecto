@@ -10,9 +10,8 @@ namespace DataAccess
 {
     public class UserDao : Connection
     {
-        public bool validarUsuario(string _name)
+        public int validarUsuario(string _name)
         {
-            bool aux;
             using (var conexion=getConnection())
             {
                 conexion.Open();
@@ -22,34 +21,47 @@ namespace DataAccess
                     command.CommandText= "SELECT * FROM tbCliente WHERE tbCliente.Nombre = @name;";
                     command.Parameters.AddWithValue("@name", _name);
                     command.CommandType= CommandType.Text;
-                    aux= command.ExecuteReader().HasRows? true: false;
+                    SQLiteDataReader reader = command.ExecuteReader();
+                    if (reader.HasRows)
+                    {
+                        while (reader.Read())
+                        {
+                            return reader.GetInt32(0);
+                        }
+                    }
                 }
             }
-            return aux;
+            return -1;
         }
 
-        public bool validarMascota(string _name)
+        public int validarMascota(string _name)
         {
-            bool aux;
             using (var conexion = getConnection())
             {
                 conexion.Open();
                 using (var command = new SQLiteCommand())
                 {
                     command.Connection = conexion;
-                    command.CommandText = "SELECT tbCliente.Nombre AS Dueño, tbMascota.Nombre AS Mascota"+ 
-                                          "FROM tbCliente"+ 
-                                          "JOIN tbMascota ON tbCliente.Id = tbMascota.Id_Cliente"+
+                    command.CommandText = "SELECT tbCliente.Nombre AS Dueño, tbMascota.Nombre AS Mascota, tbMascota.Id " + 
+                                          "FROM tbCliente "+ 
+                                          "JOIN tbMascota ON tbCliente.Id = tbMascota.Id_Cliente "+
                                           "WHERE Mascota = @name";
                     command.Parameters.AddWithValue("@name", _name);
-                    command.CommandType = CommandType.Text; 
-                    aux = command.ExecuteReader().HasRows ? true : false;
+                    command.CommandType = CommandType.Text;
+                    SQLiteDataReader reader = command.ExecuteReader();
+                    if (reader.HasRows)
+                    {
+                        while (reader.Read())
+                        {
+                            return reader.GetInt32(2);
+                        }
+                    }
                 }
             }
-            return aux;
+            return -1;
         }
 
-        public int insertarNombre(string _name)
+        public int insertarUsuario(string _name)
         {
             using (var conexion = getConnection())
             {
@@ -57,11 +69,11 @@ namespace DataAccess
                 using (var command = new SQLiteCommand())
                 {
                     command.Connection = conexion;
-                    command.CommandText = "INSERT INTO tbCliente (Nombre) VALUES (@nombre);"+
+                    command.CommandText = "INSERT INTO tbCliente (Nombre) VALUES (@name); " +
                                           "SELECT last_insert_rowid(); ";
                     command.Parameters.AddWithValue("@name", _name);
                     command.CommandType = CommandType.Text;
-                    return Convert.ToInt32(command.ExecuteScalar());
+                    return int.Parse(command.ExecuteScalar().ToString());
                 }
             }
         }

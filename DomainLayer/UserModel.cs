@@ -2,23 +2,23 @@
 
 namespace DomainLayer
 {
-    internal class UserModel
+    public class UserModel
     {
         UserDao _userDao=new UserDao();
 
-        public bool validarUsuario(string _name)
+        public int validarUsuario(string _name)
         {
             return _userDao.validarUsuario(_name);
         }
 
-        public bool validarMascota(string _name)
+        public int validarMascota(string _name)
         {
             return _userDao.validarMascota(_name);
         }
 
-        public int insertarNombre(string _name)
+        public int insertarUsuario(string _name)
         {
-            return _userDao.insertarNombre(_name);
+            return _userDao.insertarUsuario(_name);
         }
 
         public int insertarMascota(int _idCliente, string _name)
