@@ -1,4 +1,5 @@
-﻿using DataAccess;
+﻿using System.Collections.Generic;
+using DataAccess;
 
 namespace DomainLayer
 {
@@ -31,14 +32,19 @@ namespace DomainLayer
             _userDao.inicilizarAcciones(_idMascota);
         }
 
-        public bool leerAcciones(string _clientName, string _peetname)
+        public List<string> leerAcciones(string _clientName, string _peetname)
         {
             return _userDao.leerAcciones(_clientName, _peetname);
         }
 
-        public void actualizarRegistro(int _idMascota, int _accion, string _opcion)
+        public void actualizarRegistroOK(int _idMascota, int _accion)
         {
-            _userDao.actualizarRegistro(_idMascota, _accion, _opcion);
+            _userDao.actualizarRegistroOK(_idMascota, _accion);
+        }
+
+        public void actualizarRegistroNOK(int _idMascota, int _accion)
+        {
+            _userDao.actualizarRegistroNOK(_idMascota, _accion);
         }
     }
 }

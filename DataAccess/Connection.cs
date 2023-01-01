@@ -1,4 +1,4 @@
-﻿using System.Data.SQLite;
+﻿using System.Data.SqlClient;
 
 namespace DataAccess
 {
@@ -8,12 +8,12 @@ namespace DataAccess
 
         public Connection()
         {
-            _connectionString = @"Data Source=.\dbMascotas.db;Version=3;";
+            _connectionString = @"Data Source=LAPTOP-54CSS05Q\SQLEXPRESS;Initial Catalog=dbMascotas;Integrated Security=True";
         }
 
-        protected SQLiteConnection getConnection()
+        protected SqlConnection getConnection()
         {
-            return new SQLiteConnection(_connectionString);
+            return new SqlConnection(_connectionString);
         }
     }
 }

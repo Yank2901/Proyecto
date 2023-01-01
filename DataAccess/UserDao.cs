@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
+using System.Data.SQLite;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Data.SQLite;
 
 namespace DataAccess
 {
@@ -12,88 +13,87 @@ namespace DataAccess
     {
         public int validarUsuario(string _name)
         {
+            int aux = -1;
             using (var conexion=getConnection())
             {
                 conexion.Open();
-                using (var command=new SQLiteCommand())
+                using (var command=new SqlCommand())
                 {
                     command.Connection = conexion;
-                    command.CommandText= "SELECT * FROM tbCliente WHERE tbCliente.Nombre = @name;";
+                    command.CommandText= "SELECT * FROM tbCliente WHERE tbCliente.nombre = @name;";
                     command.Parameters.AddWithValue("@name", _name);
                     command.CommandType= CommandType.Text;
-                    SQLiteDataReader reader = command.ExecuteReader();
-                    if (reader.HasRows)
-                    {
-                        while (reader.Read())
-                        {
-                            return reader.GetInt32(0);
-                        }
+                    SqlDataReader reader = command.ExecuteReader();
+                    while (reader.Read()) 
+                    { 
+                        aux = reader.GetInt32(0); 
                     }
                 }
             }
-            return -1;
+            return aux;
         }
 
         public int validarMascota(string _name)
         {
+            int aux = -1;
             using (var conexion = getConnection())
             {
                 conexion.Open();
-                using (var command = new SQLiteCommand())
+                using (var command = new SqlCommand())
                 {
                     command.Connection = conexion;
-                    command.CommandText = "SELECT tbCliente.Nombre AS Dueño, tbMascota.Nombre AS Mascota, tbMascota.Id " + 
-                                          "FROM tbCliente "+ 
-                                          "JOIN tbMascota ON tbCliente.Id = tbMascota.Id_Cliente "+
-                                          "WHERE Mascota = @name";
+                    command.CommandText = "SELECT tbMascota.id, tbMascota.nombre AS Mascota, tbCliente.nombre AS Dueño " +
+                                          "FROM tbCliente JOIN tbMascota ON tbCliente.id = tbMascota.idCliente  " +
+                                          "WHERE (tbMascota.nombre = @name)";
                     command.Parameters.AddWithValue("@name", _name);
                     command.CommandType = CommandType.Text;
-                    SQLiteDataReader reader = command.ExecuteReader();
-                    if (reader.HasRows)
-                    {
-                        while (reader.Read())
-                        {
-                            return reader.GetInt32(2);
-                        }
+                    SqlDataReader reader = command.ExecuteReader();
+                    while (reader.Read()) 
+                    { 
+                        aux= reader.GetInt32(0); 
                     }
                 }
             }
-            return -1;
+            return aux;
         }
 
         public int insertarUsuario(string _name)
         {
+            int aux;
             using (var conexion = getConnection())
             {
                 conexion.Open();
-                using (var command = new SQLiteCommand())
+                using (var command = new SqlCommand())
                 {
                     command.Connection = conexion;
-                    command.CommandText = "INSERT INTO tbCliente (Nombre) VALUES (@name); " +
-                                          "SELECT last_insert_rowid(); ";
+                    command.CommandText = "INSERT INTO tbCliente(nombre) VALUES (@name); " +
+                                          "SELECT SCOPE_IDENTITY() AS 'LastInsertedId'";
                     command.Parameters.AddWithValue("@name", _name);
                     command.CommandType = CommandType.Text;
-                    return int.Parse(command.ExecuteScalar().ToString());
+                    aux = int.Parse(command.ExecuteScalar().ToString());
                 }
             }
+            return aux;
         }
 
         public int insertarMascota(int _idCliente, string _name)
         {
+            int aux;
             using (var conexion = getConnection())
             {
                 conexion.Open();
-                using (var command = new SQLiteCommand())
+                using (var command = new SqlCommand())
                 {
                     command.Connection = conexion;
-                    command.CommandText = "INSERT INTO tbMascota (Nombre, Id_Cliente) VALUES (@name,@idCliente);"+
-                                          "SELECT last_insert_rowid(); ";
+                    command.CommandText = "INSERT INTO tbMascota(nombre, idCliente) VALUES (@name,@idCliente) " +
+                                          "SELECT SCOPE_IDENTITY() AS 'LastInsertedId' ";
                     command.Parameters.AddWithValue("@name", _name);
                     command.Parameters.AddWithValue("@idCliente", _idCliente);
                     command.CommandType = CommandType.Text;
-                    return Convert.ToInt32(command.ExecuteScalar());
+                    aux= int.Parse(command.ExecuteScalar().ToString());
                 }
             }
+            return aux;
         }
 
         public void inicilizarAcciones(int _idMascota)
@@ -101,59 +101,73 @@ namespace DataAccess
             using (var conexion = getConnection())
             {
                 conexion.Open();
-                using (var command = new SQLiteCommand())
+                using (var command = new SqlCommand())
                 {
                     command.Connection = conexion;
-                    command.CommandText = "INSERT INTO tbOrdenes (\"Id_Mascota\", \"Accion\", \"OK\", \"NOK\") VALUES"+
+                    command.CommandText = "INSERT INTO tbOrdenes(idMascota,accion,ok,nok) VALUES " +
                                           "(@idMascota, 1, 0, 0),(@idMascota, 2, 0, 0),(@idMascota, 3, 0, 0),(@idMascota, 4, 0, 0),"+
                                           "(@idMascota, 5, 0, 0),(@idMascota, 6, 0, 0),(@idMascota, 7, 0, 0),(@idMascota, 8, 0, 0); ";
                     command.Parameters.AddWithValue("@idMascota", _idMascota);
                     command.CommandType = CommandType.Text;
                     command.ExecuteNonQuery();
                 }
+                conexion.Close();
             }
         }
 
-        public bool leerAcciones(string _clientName, string _peetname)
+        public List<string> leerAcciones(string _clientName, string _peetname)
+        {
+            List<string> lstAcciones= new List<string>();
+            using (var conexion = getConnection())
+            {
+                conexion.Open();
+                using (var command = new SqlCommand())
+                {
+                    command.Connection = conexion;
+                    command.CommandText = "SELECT tbCliente.nombre AS Dueño, tbMascota.nombre AS Mascota, tbOrdenes.accion AS Accion, tbOrdenes.ok AS OK, tbOrdenes.nok AS NOK " +
+                                          "FROM tbCliente " +
+                                          "JOIN tbMascota ON tbCliente.id = tbMascota.idCliente " +
+                                          "JOIN tbOrdenes ON tbMascota.id = tbOrdenes.idMascota " +
+                                          "WHERE tbCliente.nombre = @clientName AND tbMascota.nombre = @peetname";
+                    command.Parameters.AddWithValue("@clientName", _clientName);
+                    command.Parameters.AddWithValue("@peetname", _peetname);
+                    command.CommandType = CommandType.Text;
+                    SqlDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
+                    { 
+                        lstAcciones.Add(reader.GetInt32(2) + ": " + reader.GetInt32(3) + " OK, " + reader.GetInt32(4) + " NOK");
+                    }
+                }
+            }
+            return lstAcciones;
+        }
+
+        public void actualizarRegistroOK(int _idMascota, int _accion)
         {
             using (var conexion = getConnection())
             {
                 conexion.Open();
-                using (var command = new SQLiteCommand())
+                using (var command = new SqlCommand())
                 {
                     command.Connection = conexion;
-                    command.CommandText = "SELECT tbCliente.Nombre AS Dueño, tbMascota.Nombre AS Mascota, tbOrdenes.Accion AS Accion, tbOrdenes.OK AS OK, tbOrdenes.NOK AS NOK"+
-                                          "FROM tbCliente"+
-                                          "JOIN tbMascota ON tbCliente.Id = tbMascota.Id_Cliente"+
-                                          "JOIN tbOrdenes ON tbMascota.Id = tbOrdenes.Id_Mascota"+
-                                          "WHERE Dueño = @clientName AND Mascota = @peetname";
-                    command.Parameters.AddWithValue("@clientName", _clientName);
-                    command.Parameters.AddWithValue("@peetname", _peetname);
+                    command.CommandText = "UPDATE tbOrdenes SET ok = ok + 1 WHERE idMascota = @idMascota AND accion = @accion; ";
+                    command.Parameters.AddWithValue("@idMascota", _idMascota);
+                    command.Parameters.AddWithValue("@accion", _accion);
                     command.CommandType = CommandType.Text;
-                    SQLiteDataReader reader = command.ExecuteReader();
-                    if (reader.HasRows)
-                    {
-                        while (reader.Read())
-                        {
-                            Console.WriteLine(reader.GetString(2) + ": " + reader.GetString(3) + " OK, " + reader.GetString(4) + " NOK");
-                        }
-                        return true;
-                    }
-                    return false;
+                    command.ExecuteNonQuery();
                 }
             }
         }
 
-        public void actualizarRegistro(int _idMascota, int _accion, string _opcion)
+        public void actualizarRegistroNOK(int _idMascota, int _accion)
         {
             using (var conexion = getConnection())
             {
                 conexion.Open();
-                using (var command = new SQLiteCommand())
+                using (var command = new SqlCommand())
                 {
                     command.Connection = conexion;
-                    command.CommandText = "UPDATE tbOrdenes SET @opcion = @opcion + 1 WHERE Id_Mascota = @idMascota AND Accion = @accion; ";
-                    command.Parameters.AddWithValue("@opcion", _opcion);
+                    command.CommandText = "UPDATE tbOrdenes SET nok = nok + 1 WHERE idMascota = @idMascota AND accion = @accion; ";
                     command.Parameters.AddWithValue("@idMascota", _idMascota);
                     command.Parameters.AddWithValue("@accion", _accion);
                     command.CommandType = CommandType.Text;
