@@ -1,4 +1,7 @@
-﻿/*using System;
+﻿/*
+ Este codigo fue implementado como una aplicacion de consola para probar las conexiones y sentencias sql
+con la base de datos antes de implementar comunicacion cliente servidor
+ using System;
 using System.Collections.Generic;
 using DomainLayer;
 
