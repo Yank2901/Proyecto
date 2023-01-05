@@ -198,6 +198,7 @@ namespace Presentation_Server
                 user.actualizarRegistroOK(_peet.Id, int.Parse(_reg[2]));
             else
                 user.actualizarRegistroNOK(_peet.Id, int.Parse(_reg[2]));
+            sendMessage(_reg[3] + ", " + _reg[0] + ", " + _reg[1],stream);
         }
 
         static void imprimirAcciones(NetworkStream stream)
