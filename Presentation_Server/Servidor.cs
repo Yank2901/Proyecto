@@ -29,7 +29,8 @@ namespace Presentation_Server
 
         static void HandleClient(object obj)
         {
-            string opc;
+            string opc="1";
+            int aux=0;
             // Convierte el objeto recibido en un TcpClient
             TcpClient client = (TcpClient)obj;
             Console.WriteLine("Conexión establecida con el cliente.");
@@ -38,16 +39,19 @@ namespace Presentation_Server
             sendMessage("ENTRENANDO A TU PERRO UN DÍA A LA VEZ\n", stream);
             do
             {
-                // Envía el menú al cliente a través del socket
-                string menu = "Que accion quieres realizar:\n" +
-                              "1. Consultar mascota\n" +
-                              "2. Generar nuevo registro de mascota\n" +
-                              "3. Listar informacion de ordenes\n" +
-                              "4. Cerrar conexión\n\n" +
-                              "Ingrese el número de la acción a realizar: ";
-                sendMessage(menu, stream);
-                // Recibe la respuesta del cliente y almacenala en una variable
-                opc = receiveMessage(stream);
+                if (aux > 0)
+                {
+                    // Envía el menú al cliente a través del socket
+                    string menu = "Que accion quieres realizar:\n" +
+                                  "1. Consultar mascota\n" +
+                                  "2. Generar nuevo registro de mascota\n" +
+                                  "3. Listar informacion de ordenes\n" +
+                                  "4. Cerrar conexión\n\n" +
+                                  "Ingrese el número de la acción a realizar: ";
+                    sendMessage(menu, stream);
+                    // Recibe la respuesta del cliente y almacenala en una variable
+                    opc = receiveMessage(stream);
+                }
                 // Utiliza una estructura de control de flujo para determinar qué acción debes realizar en base a la respuesta del cliente
                 if (opc == "1")
                 {
@@ -72,6 +76,7 @@ namespace Presentation_Server
                 {
                     sendMessage("Acción Invalida\n\n",stream);   
                 }
+                aux++;
             } while (true);
             stream.Close();
         }
@@ -107,7 +112,7 @@ namespace Presentation_Server
         {
             Cliente _client;
             Mascota _peet;
-            sendMessage("Ingrese la orden para listar los registros de la mascota: ", stream);
+            sendMessage("Ingresa el nombre del dueño de la mascota: ", stream);
             _client = new Cliente(receiveMessage(stream));
 
             // Verificamos que el dueño exista caso contrario creamos el usuario
