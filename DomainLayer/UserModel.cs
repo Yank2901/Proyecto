@@ -46,5 +46,10 @@ namespace DomainLayer
         {
             _userDao.actualizarRegistroNOK(_idMascota, _accion);
         }
+
+        public string buscarDueño(string _name)
+        {
+            return _userDao.buscarDueño(_name);
+        }
     }
 }

@@ -202,18 +202,10 @@ namespace Presentation_Server
             Mascota _peet;
 
             sendMessage("Ingrese el nombre de la mascota a consultar: ",stream);
-            string[] _reg =receiveMessage(stream).Split(':');
+            string _namePeet = receiveMessage(stream);
+            _client = new Cliente(user.buscarDueño(_namePeet));
 
-            // Validamos que la sentencia ingresada por consola tenga 2 atributos separados por :
-            if (_reg.Length != 2)
-            {
-                sendMessage("Sentencia invalida",stream);
-                return;
-            }
-
-            // Verificamos que el dueño exista
-            _client = new Cliente(_reg[0]);
-            _client.Id = user.validarUsuario(_reg[0]);
+            _client.Id = user.validarUsuario(_client.Nombre);
             if (_client.Id == -1)
             {
                 sendMessage("Dueño no encontrado\nPuede añadir el nuevo dueño y su mascota en la opcion 1",stream);
@@ -221,7 +213,7 @@ namespace Presentation_Server
             }
 
             // Verificamos que la mascota exista
-            _peet = new Mascota(_reg[1], _client.Id);
+            _peet = new Mascota(_namePeet, _client.Id);
             _peet.Id = user.validarMascota(_peet.Nombre);
             if (_peet.Id == -1)
             {
@@ -230,7 +222,7 @@ namespace Presentation_Server
             }
 
             //Una vez verificado los parametros pasamos a realizar la peticion s la base de datos
-            string acciones="";
+            string acciones=_client.Nombre+" : "+_namePeet+"\n";
             lstAcciones = user.leerAcciones(_client.Nombre, _peet.Nombre);
             foreach (string a in lstAcciones)
             {

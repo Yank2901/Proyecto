@@ -170,5 +170,28 @@ namespace DataAccess
                 }
             }
         }
+
+        public string buscarDueño(string _name)
+        {
+            string aux = "";
+            using (var conexion = getConnection())
+            {
+                conexion.Open();
+                using (var command = new SqlCommand())
+                {
+                    command.Connection = conexion;
+                    command.CommandText =
+                        "SELECT tbCliente.nombre FROM tbCliente JOIN tbMascota ON tbCliente.id=tbMascota.idCliente WHERE tbMascota.nombre=@name";
+                    command.Parameters.AddWithValue("@name", _name);
+                    command.CommandType = CommandType.Text;
+                    SqlDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        aux = reader.GetString(0);
+                    }
+                }
+            }
+            return aux;
+        }
     }
 }
