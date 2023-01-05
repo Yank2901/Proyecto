@@ -12,8 +12,9 @@ namespace Presentation_Server
         static UserModel user=new UserModel();
         static void Main(string[] args)
         {
+            IPAddress localAddress = GetLocalIPAddress();
             // Crea un socket del servidor y espera a recibir conexiones de múltiples clientes
-            TcpListener server = new TcpListener(IPAddress.Parse("127.0.0.1"), 1234);
+            TcpListener server = new TcpListener(localAddress, 5000);
             server.Start();
             Console.WriteLine("Esperando a conexiones de clientes...");
 
@@ -77,23 +78,36 @@ namespace Presentation_Server
 
         static void sendMessage(string message, NetworkStream stream)
         {
-            byte[] data = Encoding.UTF8.GetBytes(message);
-            stream.Write(data, 0, data.Length);
+            try
+            {
+                byte[] data = Encoding.UTF8.GetBytes(message);
+                stream.Write(data, 0, data.Length);
+            }
+            catch
+            {
+            }
         }
 
         static string receiveMessage(NetworkStream stream)
         {
-            byte[] responseData = new byte[1024];
-            int bytesReceived = stream.Read(responseData, 0, responseData.Length);
-            string response = Encoding.UTF8.GetString(responseData, 0, bytesReceived);
-            return response;
+            try
+            {
+                byte[] responseData = new byte[1024];
+                int bytesReceived = stream.Read(responseData, 0, responseData.Length);
+                string response = Encoding.UTF8.GetString(responseData, 0, bytesReceived);
+                return response;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         static void verificarInscripcion(NetworkStream stream)
         {
             Cliente _client;
             Mascota _peet;
-            sendMessage( "Ingresa el nombre del dueño de la mascota: ",stream);
+            sendMessage("Ingrese la orden para listar los registros de la mascota: ", stream);
             _client = new Cliente(receiveMessage(stream));
 
             // Verificamos que el dueño exista caso contrario creamos el usuario
@@ -187,7 +201,7 @@ namespace Presentation_Server
             Cliente _client;
             Mascota _peet;
 
-            sendMessage("Ingrese la orden para listar los registros de la mascota: ",stream);
+            sendMessage("Ingrese el nombre de la mascota a consultar: ",stream);
             string[] _reg =receiveMessage(stream).Split(':');
 
             // Validamos que la sentencia ingresada por consola tenga 2 atributos separados por :
@@ -216,11 +230,29 @@ namespace Presentation_Server
             }
 
             //Una vez verificado los parametros pasamos a realizar la peticion s la base de datos
+            string acciones="";
             lstAcciones = user.leerAcciones(_client.Nombre, _peet.Nombre);
             foreach (string a in lstAcciones)
             {
-                sendMessage(a+"\n",stream);
+                acciones += a + "\n";
             }
+            sendMessage(acciones, stream);
         }
+
+        static IPAddress GetLocalIPAddress()
+        {
+            // Obtener la dirección IP de la interfaz de red local
+            IPAddress[] addresses = Dns.GetHostAddresses(Dns.GetHostName());
+            foreach (IPAddress address in addresses)
+            {
+                if (address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(address))
+                {
+                    return address;
+                }
+            }
+            throw new Exception("No se ha podido obtener la dirección IP local.");
+        }
+
+
     }
 }
